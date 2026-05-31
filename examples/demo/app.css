@@ -1,0 +1,23 @@
+/* examples/demo/app.css — 가상의 "대상 앱" 진짜 CSS (로그인 화면).
+   STT 도메인과 무관한 예시로, 스킬이 도메인 독립적임을 보여준다.
+   주의: .row span { display:block } 규칙이 일부러 들어가 있다 —
+   콜아웃 <span class="sb-cue"> 가 이 규칙에 깨지지 않는지(storyboard.css의 !important)
+   를 검증하는 스모크 테스트 역할. */
+
+:root { --c:#2563eb; --c-strong:#1d4ed8; --ink:#0f172a; --line:#e2e8f0; --muted:#64748b; }
+* { box-sizing: border-box; }
+body { margin:0; font-family: system-ui, -apple-system, "Noto Sans KR", sans-serif; background:#f1f5f9; color:var(--ink); }
+
+.card { max-width: 360px; margin: 0 auto; background:#fff; border:1px solid var(--line); border-radius:16px; padding:26px 24px; box-shadow:0 10px 30px rgba(15,23,42,.06); }
+.brand { font-size:21px; font-weight:800; margin:0 0 4px; }
+.sub { margin:0 0 20px; font-size:13px; color:var(--muted); }
+
+.row { display:block; margin-bottom:14px; }
+.row span { display:block; font-size:12px; font-weight:700; color:var(--muted); margin-bottom:6px; }  /* ← cue 파괴 규칙 */
+input { width:100%; padding:11px 12px; border:1px solid var(--line); border-radius:10px; font:inherit; background:#fbfdff; }
+input:focus { outline:3px solid rgba(37,99,235,.18); outline-offset:1px; }
+
+.btn { width:100%; min-height:46px; border:0; border-radius:10px; background:var(--c); color:#fff; font-weight:700; font-size:15px; cursor:pointer; }
+.btn:hover { background:var(--c-strong); }
+.btn.ghost { background:#eef2ff; color:var(--c); margin-top:10px; }
+.err { color:#dc2626; font-size:13px; margin:10px 0 0; min-height:18px; }

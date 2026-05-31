@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SCR-AUTH-001 로그인 · 스토리보드 화면설계서 (예제)</title>
+  <link rel="stylesheet" href="./app.css" />          <!-- 대상 앱 진짜 CSS 먼저 -->
+  <link rel="stylesheet" href="./storyboard.css" />   <!-- chrome 나중 -->
+</head>
+<body class="sb-body">
+  <nav class="sb-nav">
+    <a class="sb-back" href="./index.html">← 보드로</a>
+    <span class="sb-nav-code">SCR-AUTH-001</span>
+    <span class="sb-nav-title">로그인</span>
+  </nav>
+
+  <div class="sb-doc">
+    <header class="sb-head">
+      <p class="sb-eyebrow">스토리보드 화면설계서 · ST-01 (예제)</p>
+      <h1>로그인</h1>
+      <p>이메일/비밀번호로 로그인하는 화면. 왼쪽은 실제 화면(app.css 재사용), 오른쪽은 요소별 설명입니다. 도메인 독립 예시 겸 스킬 스모크 테스트.</p>
+      <dl class="sb-meta">
+        <div><dt>화면 ID</dt><dd>SCR-AUTH-001</dd></div>
+        <div><dt>버전</dt><dd>demo v1</dd></div>
+        <div><dt>상태</dt><dd>READY</dd></div>
+        <div><dt>선행 화면</dt><dd>(진입)</dd></div>
+        <div><dt>후행 화면</dt><dd>홈 / 오류</dd></div>
+      </dl>
+    </header>
+
+    <div class="sb-split">
+      <section class="sb-pane sb-screen-sticky">
+        <div class="sb-cap">화면 <span class="sb-cap-en">/ Screen</span></div>
+        <div class="sb-screen">
+          <div class="card">
+            <h2 class="brand sb-mark"><span class="sb-cue">1</span>Acme 로그인</h2>
+            <p class="sub">계정으로 로그인하세요.</p>
+
+            <label class="row sb-mark">
+              <span class="sb-cue">2</span>
+              <span>이메일</span>
+              <input type="email" value="user@acme.com" />
+            </label>
+
+            <label class="row sb-mark">
+              <span class="sb-cue">3</span>
+              <span>비밀번호</span>
+              <input type="password" value="········" />
+            </label>
+
+            <button class="btn sb-mark" type="button">로그인<span class="sb-cue">4</span></button>
+            <button class="btn ghost sb-mark" type="button">회원가입<span class="sb-cue">5</span></button>
+            <p class="err sb-mark"><span class="sb-cue r">6</span>&nbsp;</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="sb-pane">
+        <div class="sb-cap">화면 설명 <span class="sb-cap-en">/ Description</span></div>
+        <div class="sb-notes-wrap">
+          <table class="sb-notes">
+            <thead>
+              <tr><th class="c-no">No</th><th class="c-area">구역</th><th class="c-el">요소 / ID</th><th>설명 · 동작 · 데이터 · 예외</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="c-no"><span class="sb-num">1</span></td>
+                <td>헤더</td>
+                <td><span class="sb-el">브랜드 타이틀</span><span class="sb-id">.brand</span></td>
+                <td><p>서비스 식별. 클릭 시 랜딩으로 이동(선택).</p></td>
+              </tr>
+              <tr>
+                <td class="c-no"><span class="sb-num">2</span></td>
+                <td>입력</td>
+                <td><span class="sb-el">이메일</span><span class="sb-id">#email</span></td>
+                <td>
+                  <p>로그인 ID. 형식 검증(이메일).</p>
+                  <span class="data"><span class="tag dt">데이터</span> email: string (RFC 5322)</span>
+                  <span class="data"><span class="tag ex">예외</span> 형식 오류 → 인라인 메시지</span>
+                </td>
+              </tr>
+              <tr>
+                <td class="c-no"><span class="sb-num">3</span></td>
+                <td>입력</td>
+                <td><span class="sb-el">비밀번호</span><span class="sb-id">#password</span></td>
+                <td>
+                  <p>마스킹 입력. 최소 길이 검증.</p>
+                  <span class="data"><span class="tag dt">데이터</span> password: string (min 8)</span>
+                </td>
+              </tr>
+              <tr>
+                <td class="c-no"><span class="sb-num">4</span></td>
+                <td>조작</td>
+                <td><span class="sb-el">로그인</span><span class="sb-id">#loginBtn</span></td>
+                <td>
+                  <p>자격 증명 제출.</p>
+                  <span class="data"><span class="tag ev">이벤트</span> click → POST <code>/api/v1/auth/login</code></span>
+                  <span class="data"><span class="tag dt">요청</span> { email, password }</span>
+                  <span class="data"><span class="tag ex">예외</span> 401 → "이메일 또는 비밀번호가 올바르지 않습니다"</span>
+                </td>
+              </tr>
+              <tr>
+                <td class="c-no"><span class="sb-num">5</span></td>
+                <td>조작</td>
+                <td><span class="sb-el">회원가입</span><span class="sb-id">#signupBtn</span></td>
+                <td><p>회원가입 화면으로 이동.</p><span class="data"><span class="tag ev">이벤트</span> navigate → SCR-AUTH-002</span></td>
+              </tr>
+              <tr>
+                <td class="c-no"><span class="sb-num">6</span></td>
+                <td>상태</td>
+                <td><span class="sb-el">오류 메시지</span><span class="sb-id">.err</span></td>
+                <td><p>로그인 실패/검증 오류 시 빨강 메시지 표시. 평소엔 빈 영역.</p><span class="data"><span class="tag st">상태</span> empty · error</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+
+    <p class="sb-foot">스토리보드 화면설계서 ST-01 (예제) · 로그인 — storyboard-spec 스킬 데모</p>
+  </div>
+</body>
+</html>

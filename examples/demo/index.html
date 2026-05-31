@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Acme · 화면설계서 보드 (예제)</title>
+  <link rel="stylesheet" href="./storyboard.css" />
+  <style>
+    .board-header { max-width: 1160px; margin: 0 auto; padding: 40px 28px 8px; }
+    .board-header .eyebrow { margin: 0 0 8px; font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--sb-accent); }
+    .board-header h1 { margin: 0 0 10px; font-size: 30px; color: var(--sb-ink); }
+    .board-header p { margin: 0; color: var(--sb-ink-soft); max-width: 84ch; }
+    .group-label { max-width: 1160px; margin: 30px auto 0; padding: 0 28px; }
+    .group-label h2 { margin: 0 0 2px; font-size: 16px; color: var(--sb-ink); }
+    .group-label span { font-size: 13px; color: var(--sb-muted); }
+    .sb-grid { max-width: 1160px; margin: 0 auto; padding: 16px 28px 8px; display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; }
+    .sb-card { display: flex; flex-direction: column; background: var(--sb-panel); border: 1px solid var(--sb-line); border-radius: 16px; overflow: hidden; box-shadow: var(--sb-shadow); transition: transform .12s ease, box-shadow .12s ease; }
+    .sb-card:hover { transform: translateY(-3px); box-shadow: 0 18px 36px rgba(20,56,93,.16); }
+    .sb-card a.thumb { display: block; height: 168px; overflow: hidden; background: #eef2f7; border-bottom: 1px solid var(--sb-line); }
+    .sb-card a.thumb img { width: 100%; display: block; object-fit: cover; object-position: top center; }
+    .sb-card .body { padding: 14px 16px 16px; display: flex; flex-direction: column; flex: 1; }
+    .sb-card .top { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+    .sb-card .st { font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 999px; background: #e8f1fb; color: var(--sb-primary); }
+    .sb-card .code { font-size: 11px; font-weight: 800; letter-spacing: .04em; color: var(--sb-muted); }
+    .sb-card h3 { margin: 0 0 6px; font-size: 16px; color: var(--sb-ink); }
+    .sb-card p { margin: 0 0 12px; font-size: 13px; color: var(--sb-ink-soft); flex: 1; }
+    .sb-card a.open { text-align: center; text-decoration: none; font-weight: 700; font-size: 14px; padding: 9px 14px; border-radius: 10px; background: var(--sb-primary); color: #fff; }
+    .sb-card a.open:hover { background: var(--sb-primary-strong); }
+    .board-foot { margin: 30px auto 50px; text-align: center; font-size: 12px; color: var(--sb-muted); }
+  </style>
+</head>
+<body class="sb-body">
+  <div class="board-header">
+    <p class="eyebrow">화면설계서 보드 · Screen Design Board</p>
+    <h1>Acme — 화면설계서 (예제)</h1>
+    <p>storyboard-spec 스킬의 최소 동작 예제. 카드를 누르면 별도 화면이 열리고, 왼쪽에 실제 화면 + 번호 콜아웃, 오른쪽에 요소별 설명이 나란히 표시됩니다.</p>
+  </div>
+
+  <div class="group-label">
+    <h2>스토리보드 화면설계서</h2>
+    <span>인증 흐름</span>
+  </div>
+  <main class="sb-grid">
+    <article class="sb-card">
+      <a class="thumb" href="./sb-01-login.html"><img src="./thumbs/sb-01-login.png" alt="로그인 미리보기" /></a>
+      <div class="body">
+        <div class="top"><span class="st">READY</span><span class="code">SCR-AUTH-001</span></div>
+        <h3>로그인</h3>
+        <p>이메일/비밀번호 로그인. 검증·오류 메시지·회원가입 이동.</p>
+        <a class="open" href="./sb-01-login.html">스토리보드 열기 →</a>
+      </div>
+    </article>
+  </main>
+
+  <p class="board-foot">Acme · 화면설계서 보드 — storyboard-spec 스킬 데모</p>
+</body>
+</html>
