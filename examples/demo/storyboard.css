@@ -1,0 +1,108 @@
+/* storyboard.css — 스토리보드식 화면설계서 chrome (도메인 무관 · 재사용)
+   왼쪽: 대상 앱의 "실제 화면" 재현(대상 앱의 진짜 CSS를 함께 링크) + 번호 콜아웃
+   오른쪽: 요소별 설명표
+   ───────────────────────────────────────────────────────────────
+   사용법:
+     <link rel="stylesheet" href="<대상앱의 실제 CSS>" />   <!-- 먼저: 화면 재현용 -->
+     <link rel="stylesheet" href="./storyboard.css" />        <!-- 다음: chrome -->
+   - 모든 클래스는 sb- 접두사 → 대상 앱 CSS와 충돌하지 않음.
+   - 테마는 아래 :root 변수만 바꾸면 됨(대상 앱 색에 맞추기).
+   - .sb-cue 의 !important 는 의도된 것: 대상 앱의 `.field span{display:block}`,
+     `.meter span{background;border-radius}` 같은 규칙이 콜아웃 <span>을 덮어쓰는
+     것을 막아 항상 "흰 테두리 빨강 원 + 중앙 숫자"가 되게 한다. 지우지 말 것. */
+
+:root {
+  --sb-ink: #172033;
+  --sb-ink-soft: #44546b;
+  --sb-muted: #6b7891;
+  --sb-line: #d9e2ec;
+  --sb-line-soft: #e8eef5;
+  --sb-bg: #eef2f7;
+  --sb-panel: #ffffff;
+  --sb-primary: #1f4e79;
+  --sb-primary-strong: #14385d;
+  --sb-accent: #0f9488;
+  --sb-cue: #c24132;          /* 콜아웃 번호 원 색 */
+  --sb-shadow: 0 8px 22px rgba(20, 56, 93, .06);
+}
+
+.sb-body { margin: 0; background: var(--sb-bg); color: var(--sb-ink); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR", Arial, sans-serif; }
+
+/* 상단 내비 */
+.sb-nav { position: sticky; top: 0; z-index: 20; display: flex; align-items: center; gap: 14px; padding: 11px 22px; background: var(--sb-primary-strong); color: #fff; }
+.sb-nav a.sb-back { text-decoration: none; font-weight: 700; font-size: 13px; color: var(--sb-primary-strong); background: #fff; padding: 6px 12px; border-radius: 7px; }
+.sb-nav a.sb-back:hover { background: #e8f1fb; }
+.sb-nav .sb-nav-code { font-size: 12px; font-weight: 800; letter-spacing: .06em; color: #8fc7f0; }
+.sb-nav .sb-nav-title { font-size: 14px; color: #cfe0f2; }
+
+/* 문서 래퍼 */
+.sb-doc { max-width: 1500px; margin: 0 auto; padding: 22px 24px 70px; }
+
+/* 화면 정보(메타) 헤더 */
+.sb-head { background: var(--sb-panel); border: 1px solid var(--sb-line); border-left: 5px solid var(--sb-primary); border-radius: 10px; padding: 16px 20px; margin-bottom: 16px; box-shadow: var(--sb-shadow); }
+.sb-head .sb-eyebrow { margin: 0 0 4px; font-size: 12px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; color: var(--sb-accent); }
+.sb-head h1 { margin: 0 0 6px; font-size: 23px; }
+.sb-head p { margin: 0 0 12px; color: var(--sb-ink-soft); font-size: 14px; max-width: 90ch; }
+.sb-meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1px; background: var(--sb-line-soft); border: 1px solid var(--sb-line-soft); border-radius: 8px; overflow: hidden; }
+.sb-meta div { background: var(--sb-panel); padding: 8px 12px; }
+.sb-meta dt { font-size: 11px; font-weight: 800; color: var(--sb-muted); text-transform: uppercase; letter-spacing: .03em; }
+.sb-meta dd { margin: 3px 0 0; font-size: 13.5px; font-weight: 700; color: var(--sb-ink); }
+
+/* 좌우 분할 — 좁아지면 1열(화면이 위로) */
+.sb-split { display: grid; grid-template-columns: minmax(430px, 0.95fr) minmax(440px, 1.15fr); gap: 18px; align-items: start; }
+
+/* 패널 공통(좌/우 캡션) */
+.sb-pane { background: var(--sb-panel); border: 1px solid var(--sb-line); border-radius: 10px; box-shadow: var(--sb-shadow); overflow: hidden; }
+.sb-cap { display: flex; align-items: center; gap: 8px; padding: 10px 16px; background: #f0f5fb; border-bottom: 1px solid var(--sb-line); font-size: 12px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--sb-primary-strong); }
+.sb-cap .sb-cap-en { font-weight: 700; color: var(--sb-muted); text-transform: none; letter-spacing: 0; }
+
+/* 좌측 화면 재현 영역 — 콜아웃이 모서리 밖으로 나가도 안 잘리게 padding 확보 */
+.sb-screen { padding: 22px 20px; background: #f4f7fb; }
+.sb-screen-sticky { position: sticky; top: 64px; }
+
+/* 콜아웃 번호 마커(화면 위에 절대배치). .sb-mark 를 단 요소의 모서리에 붙는다. */
+.sb-mark { position: relative; }
+.sb-cue {
+  position: absolute; z-index: 5; top: -10px; left: -10px;
+  width: 23px !important; height: 23px !important;
+  min-width: 23px; padding: 0 !important; margin: 0 !important;
+  display: flex !important; align-items: center; justify-content: center;
+  background: var(--sb-cue) !important; color: #fff !important;
+  border: 2px solid #fff !important; border-radius: 50% !important;
+  font-size: 12px !important; font-weight: 800 !important;
+  line-height: 1 !important; text-align: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, .28);
+}
+.sb-cue.r { left: auto; right: -10px; }   /* 오른쪽 모서리에 붙일 때 */
+
+/* 우측 설명표 */
+.sb-notes-wrap { padding: 6px 0 0; }
+table.sb-notes { width: 100%; border-collapse: collapse; font-size: 13px; }
+table.sb-notes th, table.sb-notes td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--sb-line-soft); vertical-align: top; }
+table.sb-notes thead th { background: #f7fafd; color: var(--sb-primary-strong); font-size: 11.5px; text-transform: uppercase; letter-spacing: .03em; border-bottom: 2px solid var(--sb-line); }
+table.sb-notes tbody tr:hover { background: #f8fbff; }
+table.sb-notes .c-no { width: 34px; text-align: center; }
+table.sb-notes .c-area { width: 78px; }
+table.sb-notes .c-el { width: 150px; }
+.sb-num { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; background: var(--sb-cue); color: #fff; border-radius: 50%; font-size: 12px; font-weight: 800; }
+.sb-el { font-weight: 800; color: var(--sb-ink); display: block; margin-bottom: 2px; }
+.sb-id { font-family: "SF Mono", ui-monospace, Menlo, Consolas, monospace; font-size: 11.5px; color: var(--sb-primary); background: #eef3f9; padding: 1px 6px; border-radius: 4px; }
+.sb-notes code { font-family: "SF Mono", ui-monospace, Menlo, Consolas, monospace; font-size: 11.5px; background: #eef3f9; padding: 1px 5px; border-radius: 4px; color: var(--sb-primary-strong); }
+.sb-notes td p { margin: 0 0 5px; }
+.sb-notes td .data { display: block; margin-top: 4px; color: var(--sb-ink-soft); }
+.sb-notes .tag { display: inline-block; font-size: 10.5px; font-weight: 800; padding: 1px 7px; border-radius: 999px; margin-right: 4px; }
+.sb-notes .tag.ev { background: #e3f4f2; color: #0f9488; }   /* 이벤트/동작 */
+.sb-notes .tag.dt { background: #e8f1fb; color: #1f4e79; }   /* 데이터/계약 */
+.sb-notes .tag.ex { background: #fde9e7; color: #c24132; }   /* 예외 */
+.sb-notes .tag.st { background: #fff4dc; color: #b7791f; }   /* 상태 */
+
+/* 하단 비고/관련 명세 */
+.sb-foot-note { margin-top: 16px; background: var(--sb-panel); border: 1px solid var(--sb-line); border-radius: 10px; padding: 14px 18px; font-size: 13px; color: var(--sb-ink-soft); }
+.sb-foot-note strong { color: var(--sb-ink); }
+.sb-foot-note a { color: var(--sb-primary); font-weight: 700; }
+.sb-foot { margin-top: 22px; text-align: center; font-size: 12px; color: #8a96aa; }
+
+@media (max-width: 1040px) {
+  .sb-split { grid-template-columns: 1fr; }
+  .sb-screen-sticky { position: static; }
+}
