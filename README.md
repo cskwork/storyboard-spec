@@ -16,22 +16,26 @@
 
 ## 설치 / Install
 
+**Claude Code** 와 **Codex** 둘 다 지원합니다 (같은 `SKILL.md`).
+
 ```bash
-# 1) 이 레포를 클론
-git clone https://github.com/<you>/storyboard-spec.git
+# 1) 클론
+git clone https://github.com/cskwork/storyboard-spec.git
 cd storyboard-spec
 
-# 2) Claude Code 스킬 디렉토리에 설치
-./install.sh
-#   → ~/.claude/skills/storyboard-spec 로 복사
-
-# (또는) 스킬 디렉토리에 바로 클론해도 됨:
-#   git clone ... ~/.claude/skills/storyboard-spec
+# 2) 설치
+./install.sh           # 설치된 런타임 모두 (~/.claude/skills, ~/.codex/skills)
+./install.sh claude    # Claude Code 만
+./install.sh codex     # Codex 만
+./install.sh <path>    # 임의 경로
 ```
+
+스킬 디렉토리에 바로 클론해도 됩니다:
+`git clone … ~/.claude/skills/storyboard-spec` 또는 `… ~/.codex/skills/storyboard-spec`.
 
 ## 사용 / Usage
 
-Claude Code에서 그냥 요청하면 스킬이 발동합니다:
+Claude Code / Codex 에서 그냥 요청하면 스킬이 발동합니다:
 
 - "이 앱 화면들 **화면설계서**(스토리보드) 만들어줘"
 - "`<app>/design-specs/` 에 로그인·결제 화면 스토리보드 만들어"
