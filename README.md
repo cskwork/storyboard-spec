@@ -16,22 +16,27 @@
 
 ## 설치 / Install
 
-**Claude Code** 와 **Codex** 둘 다 지원합니다 (같은 `SKILL.md`).
+**Claude Code** 와 **Codex** 둘 다, **macOS · Linux · Windows** 모두 지원합니다 (같은 `SKILL.md`).
 
 ```bash
-# 1) 클론
+# macOS / Linux / Windows(Git Bash·WSL)
 git clone https://github.com/cskwork/storyboard-spec.git
 cd storyboard-spec
-
-# 2) 설치
 ./install.sh           # 설치된 런타임 모두 (~/.claude/skills, ~/.codex/skills)
-./install.sh claude    # Claude Code 만
-./install.sh codex     # Codex 만
-./install.sh <path>    # 임의 경로
+./install.sh claude    # Claude Code 만   ·   ./install.sh codex   # Codex 만
+```
+
+```powershell
+# Windows (네이티브 PowerShell)
+git clone https://github.com/cskwork/storyboard-spec.git
+cd storyboard-spec
+.\install.ps1          # 양쪽   ·   .\install.ps1 claude   ·   .\install.ps1 codex
 ```
 
 스킬 디렉토리에 바로 클론해도 됩니다:
 `git clone … ~/.claude/skills/storyboard-spec` 또는 `… ~/.codex/skills/storyboard-spec`.
+
+> 스크린샷 검증은 헤드리스 Chrome/Edge 가 필요합니다. macOS/Linux/Git Bash/WSL → `scripts/shoot.sh`, 네이티브 Windows → `scripts/shoot.ps1`. 둘 다 Chrome→Edge 순으로 자동 탐지하며 `CHROME` 환경변수로 직접 지정 가능합니다.
 
 ## 사용 / Usage
 
