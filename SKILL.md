@@ -18,7 +18,7 @@ The format is domain-agnostic: only the *content* (screens, elements) is project
 - `templates/storyboard.css` — chrome (callouts + annotation table). Themeable via `:root --sb-*`. Link AFTER the target app's CSS.
 - `templates/storyboard-page.html` — one-screen page skeleton ({{placeholders}} + inline guidance).
 - `templates/board-index.html` — thumbnail board skeleton.
-- `scripts/shoot.sh` — headless-Chrome thumbnail + verification screenshots.
+- `scripts/shoot.sh` — headless-Chrome thumbnail + verification screenshots (macOS/Linux/Git Bash/WSL). Windows-native: `scripts/shoot.ps1`.
 - `reference/playbook.md` — full process, element-extraction checklist, gotchas, cross-domain porting.
 
 ## Workflow
@@ -28,7 +28,7 @@ The format is domain-agnostic: only the *content* (screens, elements) is project
 3. **Copy CSS** — copy `templates/storyboard.css` into the output dir (theme `:root` to match the app if wanted).
 4. **Build pages** — from `storyboard-page.html`: LEFT = real markup + real CSS link + `sb-mark`/`sb-cue` callouts; RIGHT = `sb-notes` table, one row per cue.
 5. **Build board** — from `board-index.html`, one `.sb-card` per screen.
-6. **Thumbnails** — `bash scripts/shoot.sh <design-specs-dir>` → `thumbs/`.
+6. **Thumbnails** — `bash scripts/shoot.sh <design-specs-dir>` → `thumbs/` (Windows-native PowerShell: `scripts\shoot.ps1 <dir>`).
 7. **Verify** — Read the generated PNGs: callouts must be white-bordered red circles with centered numbers; left must match the real app; links/images resolve. Fix and re-shoot.
 
 ## Non-negotiable rules (see playbook §5)

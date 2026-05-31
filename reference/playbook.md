@@ -89,9 +89,15 @@ storyboard.css 의 sb- 클래스로 간단한 박스/버튼/필드를 직접 만
 ## 7. 검증 루프 (claim 전에)
 
 ```bash
+# macOS / Linux / Git Bash / WSL
 scripts/shoot.sh <design-specs-dir>            # 썸네일 생성(=검증샷)
-# 또는 한 장 전체폭:  scripts/shoot.sh <dir> sb-01-xxx.html
+scripts/shoot.sh <dir> sb-01-xxx.html          # 한 장 전체폭
+
+# Windows 네이티브 PowerShell
+scripts\shoot.ps1 <design-specs-dir>
+scripts\shoot.ps1 <dir> sb-01-xxx.html
 ```
+두 스크립트 모두 Chrome→Edge 순 자동 탐지(`CHROME` 환경변수로 지정 가능). Git Bash/WSL 에서는 경로를 Windows 형식으로 자동 변환한다.
 생성된 PNG를 **Read 로 열어 눈으로 확인**:
 - [ ] 콜아웃이 흰 테두리 빨강 원 + 숫자 중앙정렬인가
 - [ ] 왼쪽 화면이 실제 앱과 같은가 (A안일 때)
