@@ -1,16 +1,20 @@
 <!-- Shared settings logic for settings-control.html. Applies --sb-fz (reading-text
-     scale) and --sb-cue-op (callout opacity) from localStorage BEFORE paint, wires
-     the buttons + slider, and live-syncs across open tabs via the `storage` event.
+     scale), --sb-cue-op (callout opacity) and the policy expand/collapse preference
+     (sbPolOpen) from localStorage BEFORE paint, wires the buttons + slider + policy
+     <details>, and live-syncs across open tabs via the `storage` event.
      Include once per page, after the control markup. -->
 <script>
 (function(){
-  var r=document.documentElement, FZ='sbFz', OP='sbCueOp', STEPS=[1,1.12,1.26,1.42];
+  var r=document.documentElement, FZ='sbFz', OP='sbCueOp', POL='sbPolOpen', STEPS=[1,1.12,1.26,1.42];
+  var applyingPol=false;
   function cl(i){i=parseInt(i,10)||0;return Math.max(0,Math.min(STEPS.length-1,i));}
+  function getPol(){try{return localStorage.getItem(POL)==='1'}catch(e){return false}}   /* 정책 펼침 선호(디폴트 닫힘) */
+  function applyPol(o){applyingPol=true;document.querySelectorAll('.sb-pol-det').forEach(function(d){if(d.open!==o)d.open=o;});applyingPol=false;}
   function getFz(){try{return cl(localStorage.getItem(FZ))}catch(e){return 0}}
   function getOp(){try{var v=parseInt(localStorage.getItem(OP),10);return (v>=20&&v<=100)?v:60}catch(e){return 60}}
   function applyFz(i){r.style.setProperty('--sb-fz',STEPS[cl(i)]);}
   function applyOp(v){r.style.setProperty('--sb-cue-op',(v/100).toFixed(2));}
-  applyFz(getFz()); applyOp(getOp());           /* before paint — no flash */
+  applyFz(getFz()); applyOp(getOp()); applyPol(getPol());   /* before paint — no flash */
   function wire(){
     var fi=getFz();
     document.querySelectorAll('[data-fz]').forEach(function(b){b.addEventListener('click',function(){
@@ -19,10 +23,14 @@
     var s=document.querySelector('[data-op]');
     if(s){s.value=getOp(); s.addEventListener('input',function(){
       applyOp(s.value); try{localStorage.setItem(OP,s.value)}catch(e){}});}
+    applyPol(getPol());                            /* 정책 펼침/접힘 선호 복원 */
+    document.querySelectorAll('.sb-pol-det').forEach(function(d){
+      d.addEventListener('toggle',function(){if(applyingPol)return;try{localStorage.setItem(POL,d.open?'1':'0')}catch(e){}});});
   }
   if(document.readyState!=='loading')wire();else document.addEventListener('DOMContentLoaded',wire);
   window.addEventListener('storage',function(e){    /* change on one page -> all open tabs */
     if(e.key===FZ)applyFz(getFz());
-    if(e.key===OP){applyOp(getOp()); var s=document.querySelector('[data-op]'); if(s)s.value=getOp();}});
+    if(e.key===OP){applyOp(getOp()); var s=document.querySelector('[data-op]'); if(s)s.value=getOp();}
+    if(e.key===POL)applyPol(getPol());});
 })();
 </script>

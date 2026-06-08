@@ -198,6 +198,98 @@ def render_desc(lines):
     return '\n'.join(out)
 
 
+# ---------- policy / rules -> structured, collapsible HTML ----------
+# Figma 의 정책 박스는 보통 다중 컬럼이라 텍스트가 평탄화되어 들어온다. 무번호 짧은 줄은
+# 섹션 헤더, 불릿은 항목으로 보고 카드(헤더+리스트)로 묶는다. 항목 앞부분의 "라벨: 값"/
+# "라벨   값"은 라벨을 굵게, SB-/N-SEC-/M- 참조·[버튼]·API/메서드는 칩/코드로 강조한다.
+P_CHIP = re.compile(r'(\[[^\]\n]{1,28}\])')
+P_REF = re.compile(r'\b(SB-[0-9A-Za-z_]+|N-[A-Z]+-[0-9A-Za-z_]+|M-[0-9][0-9A-Za-z_-]*)\b')
+P_CODE = re.compile(r'((?:GET|POST|PUT|DELETE|PATCH)\b|/(?:api|master)/[^\s,]+)')
+
+
+def _pol_inline(s):
+    s = html.escape(s)                       # escape first → brackets/slashes stay literal
+    s = P_CODE.sub(r'<code>\1</code>', s)
+    s = P_REF.sub(r'<span class="pref">\1</span>', s)
+    s = P_CHIP.sub(r'<span class="pchip">\1</span>', s)
+    return s
+
+
+def _pol_item(s):
+    s = s.strip()
+    # 1) 콜론 라벨(가장 신뢰): "라벨: 값" — 라벨에 대괄호 없을 때만
+    m = re.match(r'^([^:：\[\]\n]{1,16})[:：]\s+(.+)$', s)
+    # 2) 정렬 공백: 첫 컬럼이 1~2단어(짧은 코드/구)일 때만 라벨로
+    if not m:
+        m = re.match(r'^(\S+(?:\s\S+)?)\s{2,}(.+)$', s)
+        if m and len(m.group(1)) > 16:
+            m = None
+    if m:
+        rest = re.sub(r'\s{2,}', ' ', m.group(2))            # 정렬용 다중 공백 정규화
+        return '<span class="k">%s</span> %s' % (html.escape(m.group(1)), _pol_inline(rest))
+    return _pol_inline(re.sub(r'\s{2,}', ' ', s))
+
+
+def policy_html(pairs):
+    """pairs: list of ('sec'|'item', text). First policy-ish 'sec' = title; empty headers merge."""
+    title, secs = None, []
+    for k, v in pairs:
+        v = (v or '').strip()
+        if not v:
+            continue
+        if k == 'sec':
+            if title is None and not secs and re.search(r'정책|policy|rules', v, re.I):
+                title = v
+            elif secs and not secs[-1]['items'] and secs[-1]['h']:   # 연속 헤더 → 빈 카드 병합
+                secs[-1]['h'] += ' · ' + v
+            else:
+                secs.append({'h': v, 'items': []})
+        else:
+            if not secs:
+                secs.append({'h': '', 'items': []})
+            secs[-1]['items'].append(v)
+    out = ['<div class="sb-pol">']
+    if title:
+        out.append('<p class="sb-pol-title">%s</p>' % html.escape(title))
+    out.append('<div class="sb-pol-cols">')
+    for s in secs:
+        out.append('<section class="sb-pol-card">')
+        if s['h']:
+            out.append('<h5>%s</h5>' % _pol_inline(s['h']))
+        if s['items']:
+            out.append('<ul>%s</ul>' % ''.join('<li>%s</li>' % _pol_item(it) for it in s['items']))
+        out.append('</section>')
+    out.append('</div></div>')
+    return '\n'.join(out)
+
+
+def render_policy(lines):
+    flat = []
+    for ln in lines:
+        flat.extend(ln.split('\n'))
+    pairs = []
+    for ln in flat:
+        kind, val = classify(ln)
+        if kind == 'blank':
+            continue
+        if kind == 'bullet':
+            pairs.append(('item', val))
+        elif kind == 'head':                  # ①②③ heading
+            pairs.append(('sec', val[1:].strip()))
+        else:                                 # 'num' or plain 'text' = section header
+            pairs.append(('sec', val if kind == 'num' else val.strip()))
+    return policy_html(pairs)
+
+
+# 정책 섹션 마크업(접이식, 디폴트 숨김). body() 와 산출물 후처리가 같은 형태를 쓰도록 공유.
+def policy_section(policy_lines):
+    return ('<section class="sb-pane sb-policy"><details class="sb-pol-det">'
+            '<summary class="sb-cap">정책 · 규칙 '
+            '<span class="sb-cap-en">policy / rules · Figma 텍스트 그대로</span>'
+            '<span class="sb-pol-state" aria-hidden="true"></span></summary>%s</details></section>'
+            ) % render_policy(policy_lines)
+
+
 CTL = open(os.path.join(SKILL, 'templates', 'settings-control.html')).read()
 SETTINGS_JS = open(os.path.join(SKILL, 'templates', 'settings-control.js')).read()
 ZOOM_JS = open(os.path.join(SKILL, 'templates', 'zoom-control.js')).read()
@@ -348,14 +440,14 @@ def render(out, man, key, file_name, title):
                   '<span class="sb-zoomctl"><button data-z="out" aria-label="축소">−</button><span class="zlvl">100%%</span>'
                   '<button data-z="in" aria-label="확대">+</button><button class="wide" data-z="fit">맞춤</button>'
                   '<a href="#" data-lb="./%s" data-title="%s" title="원본 보기 (팝업 뷰어)">원본 보기</a></span></div>'
-                  '<div class="sb-screen sb-screen-sticky"><div class="sb-zoom" title="스크롤·버튼 확대 / 드래그 이동 / 더블클릭 원래대로">'
+                  '<div class="sb-screen"><div class="sb-zoom" title="스크롤·버튼 확대 / 드래그 이동 / 더블클릭 원래대로">'
                   '<div class="sb-stage"><img class="sb-screen-img" src="./%s" alt="" draggable="false"/>%s</div></div></div></section>'
                   ) % (html.escape(m['png']), html.escape(m['frame_name']), html.escape(sf), overlays(m))
             dp = '<section class="sb-pane"><div class="sb-cap">설명 <span class="sb-cap-en">description · Figma 텍스트</span></div>%s</section>' % render_desc(m['desc'])
-            b = '<div class="sb-split">%s%s</div>' % (sp, dp)
-            if m['policy']:
-                b += '<section class="sb-pane sb-policy"><div class="sb-cap">정책 · 규칙</div>%s</section>' % render_desc(m['policy'])
-            return b
+            # 정책 · 규칙을 화면/설명 split 앞(위)에 둔다 — 가장 중요한 계약이라 먼저 보이게.
+            # 구조화 카드 + 접이식(디폴트 숨김).
+            pol = policy_section(m['policy']) if m['policy'] else ''
+            return '%s<div class="sb-split">%s%s</div>' % (pol, sp, dp)
         return '<figure class="sb-pane" style="padding:0"><a href="./%s" target="_blank"><img src="./%s" style="width:100%%;display:block" alt=""/></a></figure>' % (html.escape(m['png']), html.escape(m['png']))
 
     page = open(os.path.join(SKILL, 'templates', 'storyboard-figma-page.html')).read()
