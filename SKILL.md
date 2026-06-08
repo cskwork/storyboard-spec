@@ -25,6 +25,10 @@ Both modes share the same right-pane table, board, and verification. Default to 
 - `templates/board-index.html` — thumbnail board skeleton.
 - `scripts/shoot.sh` — headless-Chrome thumbnail + verification screenshots (macOS/Linux/Git Bash/WSL). Windows-native: `scripts/shoot.ps1`.
 - `reference/playbook.md` — full process, element-extraction checklist, gotchas, cross-domain porting.
+- `scripts/figma_storyboard.py` — **automated Mode A for Figma**: one Figma file → a full storyboard site (screen image + crisp HTML callouts left, real description text right, real policy text bottom, board, shared controls). See `reference/figma-extract.md`.
+- `reference/figma-extract.md` — the Figma REST extraction playbook (text nodes → HTML, marker → callout overlay, panel/policy split, render-timeout gotcha).
+- `templates/storyboard-figma-page.html`, `templates/board-figma-index.html` — page/board skeletons used by `figma_storyboard.py`.
+- `templates/settings-control.html` + `settings-control.js` — shared top-right control (글자 크기 + 콜아웃 진하기 slider) persisted in `localStorage` so a change on one page applies to all.
 
 ## Workflow
 

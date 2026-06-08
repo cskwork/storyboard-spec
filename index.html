@@ -245,6 +245,7 @@
       </a>
       <nav>
         <a class="navlink" href="#produce">무엇을 만드나</a>
+        <a class="navlink" href="#figma">Figma 자동화</a>
         <a class="navlink" href="#why">왜</a>
         <a class="navlink" href="#install">설치</a>
         <a class="navlink" href="./examples/demo/index.html">데모</a>
@@ -323,6 +324,32 @@
           <img src="./assets/board.png" width="1080" height="1424" alt="화면설계서 보드 화면. 화면 미리보기 썸네일 카드가 그리드로 놓여 있고, 각 카드에 상태, 화면 ID, 제목과 스토리보드 열기 버튼이 있다." />
           <p class="cap">보드(index): 카드를 누르면 해당 스토리보드로 이동</p>
         </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="figma" class="produce">
+    <div class="wrap">
+      <div class="sec-head" data-reveal>
+        <h2>Figma면 한 줄, 텍스트는 텍스트로</h2>
+        <p>Figma 파일을 소스로 주면 <code>figma_storyboard.py</code> 한 줄이 화면·콜아웃·설명·보드를 만듭니다. 설명과 정책은 캡처가 아니라 진짜 HTML 텍스트라 선택·복사·검색됩니다.</p>
+      </div>
+      <div class="bento">
+        <article class="cell wide" data-reveal>
+          <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m12 2 9 5-9 5-9-5z"/><path d="m3 12 9 5 9-5"/><path d="m3 17 9 5 9-5"/></svg></div>
+          <h3>Figma → 화면설계서, 한 줄</h3>
+          <p>프레임마다 한 페이지. 화면은 우측 패널·하단 정책을 잘라낸 이미지로, 마커 좌표로 <strong>선명한 HTML 콜아웃</strong>을 얹고, DescriptionPanel·PolicyBox 텍스트를 실제 HTML로 옮깁니다. 한 번에 60+ 화면도.</p>
+        </article>
+        <article class="cell" data-reveal data-d="1">
+          <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V4h16v3"/><path d="M9 20h6"/><path d="M12 4v16"/></svg></div>
+          <h3>텍스트는 텍스트로</h3>
+          <p>오른쪽 설명·아래 정책은 이미지에 박힌 글자가 아니라 Figma TEXT 노드 그대로 HTML. 복사·검색·번역이 됩니다. 번호는 화면 콜아웃과 1:1 매칭 배지.</p>
+        </article>
+        <article class="cell tint" data-reveal>
+          <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/><path d="M8 11h6M11 8v6"/></svg></div>
+          <h3>읽기 좋은 뷰어</h3>
+          <p>좌측 목차로 화면 간 바로 이동, 화면 휠·버튼·드래그 줌, 원본 보기 인페이지 팝업, 글자 크기·콜아웃 진하기 컨트롤이 모든 페이지에 <strong>공통 적용</strong>(localStorage).</p>
+        </article>
       </div>
     </div>
   </section>
