@@ -1,0 +1,14 @@
+<!-- In-page 원본 viewer popup (one per page). Opened by any [data-lb] trigger via
+     lightbox.js; no new browser tab. Zoom = wheel + buttons; drag to pan; Esc/✕/backdrop close.
+     Static markup (no braces) so it is safe to inject through str.format. -->
+<div class="sb-lb" id="sbLb" hidden>
+  <div class="sb-lb-bar">
+    <span class="t" id="sbLbTitle"></span>
+    <span class="sb-zoomctl">
+      <button data-z="out" aria-label="축소">−</button><span class="zlvl">100%</span>
+      <button data-z="in" aria-label="확대">+</button><button class="wide" data-z="fit">맞춤</button>
+    </span>
+    <button class="sb-lb-x" data-lbclose aria-label="닫기">✕</button>
+  </div>
+  <div class="sb-lb-zoom" id="sbLbZoom"><div class="sb-stage"><img id="sbLbImg" alt="원본 화면" draggable="false" /></div></div>
+</div>

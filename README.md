@@ -51,19 +51,42 @@ Claude Code / Codex 에서 그냥 요청하면 스킬이 발동합니다:
 
 Claude 가 요소를 정리 → 왼쪽 화면을 만들고(와이어프레임 또는 실제 CSS 재현) → 콜아웃 + 설명표 작성 → 보드 생성 → 헤드리스 크롬으로 스크린샷 검증까지 수행합니다.
 
+## Figma 자동화 (모드 A) / One command from Figma
+
+Figma 파일이 소스면 `scripts/figma_storyboard.py` 가 전 과정을 자동화합니다 — 프레임 하나 = 한 페이지:
+
+```bash
+export FIGMA_TOKEN=figd_...        # 또는 스킬 폴더의 .env (gitignored)
+export FIGMA_FILE_KEY=xxxxxxxx     # 파일 URL의 /design/<KEY>/ 부분
+python3 scripts/figma_storyboard.py --out ./design-specs --pages 9:2,60:2 --title "My CMS"
+# --pages 생략 시 전체 캔버스 페이지. URL의 node-id 9-2 == API id 9:2
+```
+
+- **왼쪽 = 화면 이미지** — 프레임을 export 해 우측 설명 패널·하단 정책을 잘라낸 화면만, 그 위에 **선명한 HTML 콜아웃**(Figma 마커 좌표로 핀 — 이미지에 박지 않아 어느 배율에서도 또렷, 진하기 조절 가능).
+- **오른쪽 = 설명, 아래 = 정책·규칙** — Figma `TEXT` 노드를 **실제 HTML 텍스트**로 옮깁니다(선택·복사·검색 가능, 캡처 이미지 아님). 번호는 화면 콜아웃과 1:1 매칭되는 배지.
+- **읽기 좋은 뷰어** — 좌측 목차로 화면 간 바로 이동, 화면 휠·버튼·드래그 줌, 원본 보기 인페이지 팝업(역시 줌), 우측 상단 글자 크기·콜아웃 진하기 컨트롤(한 페이지에서 바꾸면 `localStorage`로 전체 공통 적용).
+
+함정(렌더 타임아웃, 패널/정책 분리, Grid `min-width:0`)과 단계는 [`reference/figma-extract.md`](reference/figma-extract.md).
+
 ## 구조 / Layout
 
 ```
 storyboard-spec/
 ├── SKILL.md                     # 스킬 진입점 (Claude 가 읽음)
 ├── templates/
-│   ├── storyboard.css           # chrome (콜아웃·설명표). :root 변수로 테마
-│   ├── storyboard-page.html     # 화면 1장 스켈레톤 ({{placeholder}})
-│   └── board-index.html         # 썸네일 보드 스켈레톤
+│   ├── storyboard.css           # chrome (콜아웃·설명표) + Figma 레이아웃·컨트롤·줌·라이트박스. :root 변수로 테마
+│   ├── storyboard-page.html     # 화면 1장 스켈레톤 ({{placeholder}}) — 수작업 모드 B/A
+│   ├── board-index.html         # 썸네일 보드 스켈레톤
+│   ├── storyboard-figma-page.html / board-figma-index.html   # Figma 자동화용 페이지·보드
+│   ├── settings-control.html/.js # 글자 크기 + 콜아웃 진하기 (공통, localStorage 공유)
+│   ├── zoom-control.js           # 화면 휠·버튼·드래그 줌
+│   └── lightbox.html/.js         # 원본 보기 인페이지 팝업 뷰어
 ├── scripts/
-│   └── shoot.sh                 # 헤드리스 크롬 썸네일/검증 샷
+│   ├── shoot.sh                 # 헤드리스 크롬 썸네일/검증 샷
+│   └── figma_storyboard.py      # Figma 파일 → 스토리보드 사이트 한 줄 자동화
 ├── reference/
-│   └── playbook.md              # 전체 프로세스 · 함정 · 도메인 이식 가이드
+│   ├── playbook.md              # 전체 프로세스 · 함정 · 도메인 이식 가이드
+│   └── figma-extract.md         # Figma REST 추출 워크플로 (텍스트→HTML, 콜아웃 오버레이, 함정)
 └── examples/demo/               # 최소 동작 예제(로그인 화면) = 스모크 테스트
 ```
 

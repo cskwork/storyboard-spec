@@ -1,0 +1,14 @@
+<!-- Shared settings cluster (top-right of every page + the board).
+     글자 크기 (가−/가/가+) + 콜아웃 진하기 slider. Pair with settings-control.js.
+     Both write localStorage, so a change on ONE storyboard applies to ALL. -->
+<div class="sb-ctl">
+      <div class="sb-fontctl" role="group" aria-label="글자 크기">
+        <button class="sm" data-fz="dec" aria-label="글자 작게" title="작게">가</button>
+        <button data-fz="reset" aria-label="기본 글자 크기" title="기본">가</button>
+        <button class="lg" data-fz="inc" aria-label="글자 크게" title="크게">가</button>
+      </div>
+      <label class="sb-opctl" title="콜아웃 번호 진하기 — 이미지 가림 조절">
+        <span class="ico">①</span><span class="lab">번호 진하기</span>
+        <input type="range" min="20" max="100" step="5" data-op aria-label="콜아웃 번호 진하기" />
+      </label>
+    </div>
