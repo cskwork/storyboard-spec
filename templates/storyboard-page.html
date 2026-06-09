@@ -155,7 +155,7 @@
   (function(){var r=document.documentElement,FZ='sbFz',OP='sbCueOp',S=[1,1.12,1.26,1.42];
   function cl(i){i=parseInt(i,10)||0;return Math.max(0,Math.min(S.length-1,i));}
   function gF(){try{return cl(localStorage.getItem(FZ))}catch(e){return 0}}
-  function gO(){try{var v=parseInt(localStorage.getItem(OP),10);return(v>=20&&v<=100)?v:60}catch(e){return 60}}
+  function gO(){try{var v=parseInt(localStorage.getItem(OP),10);return(v>=20&&v<=100)?v:100}catch(e){return 100}}
   function aF(i){r.style.setProperty('--sb-fz',S[cl(i)]);}
   function aO(v){r.style.setProperty('--sb-cue-op',(v/100).toFixed(2));}
   aF(gF());aO(gO());
