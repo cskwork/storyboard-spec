@@ -50,7 +50,7 @@
 .sb-nav .sb-nav-title { font-size: 14px; color: #cfe0f2; }
 
 /* 문서 래퍼 */
-.sb-doc { max-width: 1500px; margin: 0 auto; padding: 24px 24px 72px; }
+.sb-doc { max-width: none; margin: 0; padding: 24px 28px 72px; }   /* 전체 폭 사용(좌우 여백 없음) */
 
 /* 화면 정보(메타) 헤더 */
 .sb-head { background: var(--sb-panel); border: 1px solid var(--sb-line); border-left: 4px solid var(--sb-primary); border-radius: var(--sb-radius); padding: 18px 22px; margin-bottom: 18px; box-shadow: var(--sb-shadow); }
