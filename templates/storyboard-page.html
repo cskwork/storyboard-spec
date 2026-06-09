@@ -4,16 +4,23 @@
      복사해서 {{...}} 를 채우세요. 한 화면(또는 한 상태)당 파일 하나.
      파일명 규칙: sb-NN-<slug>.html  (예: sb-01-input-ready.html)
 
+     기본 탑재(상단 바 · 좌측 목차 · 화면 캡션):
+       · 화면 목차(.sb-toc) — 전체 화면 그룹별 점프, 현재=current
+       · 글자 크기(가−/가/가+) · 콜아웃 번호 진하기 슬라이더 (localStorage)
+       · 화면 확대/축소(휠·＋－·맞춤·드래그·더블클릭) · 원본 보기(전체화면 팝업)
+       · 이전/다음 pager
+     세 컨트롤 스크립트는 아래에 인라인되어 있습니다(설정/줌/라이트박스). 외부 JS 불필요.
+
      CSS 링크 순서 (중요):
-       1) 대상 앱의 "진짜" 스타일시트  → 왼쪽 화면을 픽셀까지 똑같이 재현
-       2) ./storyboard.css            → 콜아웃/설명표 chrome
+       1) 대상 앱의 "진짜" 스타일시트  → 왼쪽 화면을 픽셀까지 똑같이 재현 (Mode A 재현)
+       2) ./storyboard.css            → 콜아웃/설명표/컨트롤 chrome
      ──────────────────────────────────────────────────────────────────── -->
 <html lang="ko">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>{{SCREEN_ID}} {{TITLE}} · 스토리보드 화면설계서</title>
-  <link rel="stylesheet" href="{{TARGET_APP_CSS}}" />   <!-- 예: ../styles.css -->
+  <link rel="stylesheet" href="{{TARGET_APP_CSS}}" />   <!-- 예: ../styles.css (Mode A 재현용) -->
   <link rel="stylesheet" href="./storyboard.css" />
 </head>
 <body class="sb-body">
@@ -21,84 +28,212 @@
     <a class="sb-back" href="./index.html">← 보드로</a>
     <span class="sb-nav-code">{{SCREEN_ID}}</span>
     <span class="sb-nav-title">{{TITLE}}</span>
+    <span class="sb-right">
+      <div class="sb-ctl">
+        <div class="sb-fontctl" role="group" aria-label="글자 크기">
+          <button class="sm" data-fz="dec" aria-label="글자 작게" title="작게">가</button>
+          <button data-fz="reset" aria-label="기본 글자 크기" title="기본">가</button>
+          <button class="lg" data-fz="inc" aria-label="글자 크게" title="크게">가</button>
+        </div>
+        <label class="sb-opctl" title="콜아웃 번호 진하기 — 화면 가림 조절">
+          <span class="ico">①</span><span class="lab">번호 진하기</span>
+          <input type="range" min="20" max="100" step="5" data-op aria-label="콜아웃 번호 진하기" />
+        </label>
+      </div>
+      <span class="sb-pager"><span class="pg">‹ 이전</span><a href="./{{NEXT_FILE}}">다음 ›</a></span>
+    </span>
   </nav>
 
-  <div class="sb-doc">
-    <header class="sb-head">
-      <p class="sb-eyebrow">스토리보드 화면설계서 · {{ST_NO}}</p>
-      <h1>{{TITLE}}</h1>
-      <p>{{ONE_LINE_PURPOSE}}</p>
-      <dl class="sb-meta">
-        <div><dt>화면 ID</dt><dd>{{SCREEN_ID}}</dd></div>
-        <div><dt>버전</dt><dd>{{VERSION}}</dd></div>
-        <div><dt>상태</dt><dd>{{STATE}}</dd></div>
-        <div><dt>선행 화면</dt><dd>{{PREV_SCREEN}}</dd></div>
-        <div><dt>후행 화면</dt><dd>{{NEXT_SCREEN}}</dd></div>
-      </dl>
-    </header>
+  <div class="sb-layout">
+    <!-- ╔═ 화면 목차(TOC) — 전체 화면을 그룹별로. 페이지마다 동일하게 복제, current만 이동 ═╗
+         미작성(계획) 화면은 링크 없이 흐리게: <span class="t plan"><span class="c">..</span><span class="n">..</span></span> -->
+    <aside class="sb-toc" aria-label="화면 목차">
+      <div class="g">{{GROUP_TITLE}}</div>
+      <a class="t current" href="./{{SCREEN_FILE}}"><span class="c">{{SCREEN_ID}}</span><span class="n">{{TITLE}}</span></a>
+      <a class="t" href="./sb-02-xxx.html"><span class="c">sb-02</span><span class="n">다음 화면</span></a>
+    </aside>
 
-    <div class="sb-split">
-      <!-- ╔═ 왼쪽: 실제 화면 재현 ════════════════════════════════════════╗
-           대상 앱의 진짜 마크업/클래스를 그대로 붙여 넣는다.
-           주석을 달 요소마다:
-             - 그 요소에 class="... sb-mark" 를 추가
-             - 그 요소의 자식으로 <span class="sb-cue">N</span> 삽입
-               (오른쪽 위 모서리에 붙이려면 class="sb-cue r")
-           ⚠ <table>/<thead>/<tbody>/<tr> 의 "직속 자식"으로 <span>을 넣지 말 것
-              (브라우저가 테이블 밖으로 밀어냄). 그럴 땐 <table>을 <div class="sb-mark">로 감싸고
-              그 div 의 자식으로 cue 를 둔다.
-           ╚════════════════════════════════════════════════════════════╝ -->
-      <section class="sb-pane sb-screen-sticky">
-        <div class="sb-cap">화면 <span class="sb-cap-en">/ Screen</span></div>
-        <div class="sb-screen">
+    <main class="sb-main">
+      <header class="sb-head">
+        <p class="sb-eyebrow">스토리보드 화면설계서 · {{ST_NO}}</p>
+        <h1>{{TITLE}}</h1>
+        <p>{{ONE_LINE_PURPOSE}}</p>
+        <dl class="sb-meta">
+          <div><dt>화면 ID</dt><dd>{{SCREEN_ID}}</dd></div>
+          <div><dt>버전</dt><dd>{{VERSION}}</dd></div>
+          <div><dt>상태</dt><dd>{{STATE}}</dd></div>
+          <div><dt>선행 화면</dt><dd>{{PREV_SCREEN}}</dd></div>
+          <div><dt>후행 화면</dt><dd>{{NEXT_SCREEN}}</dd></div>
+        </dl>
+      </header>
 
-          {{REPLICA_MARKUP}}
-          <!-- 예시(대상 앱 클래스를 그대로 쓴 모습):
-          <div class="some-panel">
-            <button class="primary sb-mark" type="button">시작<span class="sb-cue">1</span></button>
-            <label class="field sb-mark"><span class="sb-cue">2</span><span>이름</span><input /></label>
+      <div class="sb-split">
+        <!-- ╔═ 왼쪽: 실제 화면 재현 (확대/축소 + 원본 보기) ════════════════╗
+             .sb-stage 안에 화면을 둔다:
+               · Mode A 재현: 대상 앱의 진짜 마크업/클래스를 그대로 붙여 넣기 (아래 {{REPLICA_MARKUP}})
+               · Mode A 이미지: <img class="sb-screen-img" src="..."> + <span class="sb-cue pin" style="left:%;top:%">N</span>
+             주석 달 요소마다: class="... sb-mark" + 자식 <span class="sb-cue">N</span> (오른쪽 위는 sb-cue r)
+             ⚠ <table>/<tr> 직속 자식으로 <span class="sb-cue"> 금지 → div.sb-mark로 감싸고 그 자식에
+             ╚════════════════════════════════════════════════════════════╝ -->
+        <section class="sb-pane sb-screenpane">
+          <div class="sb-cap">화면 <span class="sb-cap-en">/ Screen</span>
+            <span class="sb-zoomctl">
+              <button data-z="out" aria-label="축소" title="축소">−</button><span class="zlvl">100%</span>
+              <button data-z="in" aria-label="확대" title="확대">+</button>
+              <button class="wide" data-z="fit" title="원래대로">맞춤</button>
+              <a href="#" data-lb-stage title="원본 보기 (전체화면 팝업)">원본 보기</a>
+            </span>
           </div>
-          -->
+          <div class="sb-screen">
+            <div class="sb-zoom" title="휠/버튼 확대 · 드래그 이동 · 더블클릭 원래대로">
+              <div class="sb-stage">
 
-        </div>
-      </section>
+                {{REPLICA_MARKUP}}
+                <!-- 예시(대상 앱 클래스를 그대로 쓴 모습):
+                <div class="some-panel">
+                  <button class="primary sb-mark" type="button">시작<span class="sb-cue">1</span></button>
+                  <label class="field sb-mark"><span class="sb-cue">2</span><span>이름</span><input /></label>
+                </div>
+                -->
 
-      <!-- ╔═ 오른쪽: 요소별 설명표 ══════════════════════════════════════╗
-           왼쪽 cue 번호와 1:1 대응. 태그로 종류 구분:
-             tag ev = 이벤트/동작 · tag dt = 데이터/계약 · tag ex = 예외 · tag st = 상태
-           ╚════════════════════════════════════════════════════════════╝ -->
-      <section class="sb-pane">
-        <div class="sb-cap">화면 설명 <span class="sb-cap-en">/ Description</span></div>
-        <div class="sb-notes-wrap">
-          <table class="sb-notes">
-            <thead>
-              <tr><th class="c-no">No</th><th class="c-area">구역</th><th class="c-el">요소 / ID</th><th>설명 · 동작 · 데이터 · 예외</th></tr>
-            </thead>
-            <tbody>
+              </div>
+            </div>
+          </div>
+        </section>
 
-              <!-- 행 1개 패턴 (cue 번호마다 반복) -->
-              <tr>
-                <td class="c-no"><span class="sb-num">{{N}}</span></td>
-                <td>{{AREA}}</td>
-                <td><span class="sb-el">{{ELEMENT_NAME}}</span><span class="sb-id">{{DOM_ID_OR_SELECTOR}}</span></td>
-                <td>
-                  <p>{{WHAT_IT_DOES}}</p>
-                  <span class="data"><span class="tag ev">이벤트</span> {{EVENT_OR_ACTION}}</span>
-                  <span class="data"><span class="tag dt">데이터</span> {{DATA_CONTRACT}}</span>
-                  <span class="data"><span class="tag ex">예외</span> {{EXCEPTION}}</span>
-                </td>
-              </tr>
+        <!-- ╔═ 오른쪽: 요소별 설명표 ══════════════════════════════════════╗
+             왼쪽 cue 번호와 1:1 대응. tag: ev 이벤트 · dt 데이터 · ex 예외 · st 상태
+             ╚════════════════════════════════════════════════════════════╝ -->
+        <section class="sb-pane">
+          <div class="sb-cap">화면 설명 <span class="sb-cap-en">/ Description</span></div>
+          <div class="sb-notes-wrap">
+            <table class="sb-notes">
+              <thead>
+                <tr><th class="c-no">No</th><th class="c-area">구역</th><th class="c-el">요소 / ID</th><th>설명 · 동작 · 데이터 · 예외</th></tr>
+              </thead>
+              <tbody>
+                <!-- 행 1개 패턴 (cue 번호마다 반복) -->
+                <tr>
+                  <td class="c-no"><span class="sb-num">{{N}}</span></td>
+                  <td>{{AREA}}</td>
+                  <td><span class="sb-el">{{ELEMENT_NAME}}</span><span class="sb-id">{{DOM_ID_OR_SELECTOR}}</span></td>
+                  <td>
+                    <p>{{WHAT_IT_DOES}}</p>
+                    <span class="data"><span class="tag ev">이벤트</span> {{EVENT_OR_ACTION}}</span>
+                    <span class="data"><span class="tag dt">데이터</span> {{DATA_CONTRACT}}</span>
+                    <span class="data"><span class="tag ex">예외</span> {{EXCEPTION}}</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
 
-            </tbody>
-          </table>
-        </div>
-      </section>
-    </div>
-
-    <div class="sb-foot-note">
-      <strong>관련 상세 명세:</strong> {{RELATED_LINKS}}
-    </div>
-    <p class="sb-foot">스토리보드 화면설계서 {{ST_NO}} · {{TITLE}} (기준 {{SOURCE_REFERENCE}})</p>
+      <div class="sb-foot-note">
+        <strong>관련 상세 명세:</strong> {{RELATED_LINKS}}
+      </div>
+      <p class="sb-foot">스토리보드 화면설계서 {{ST_NO}} · {{TITLE}} (기준 {{SOURCE_REFERENCE}})</p>
+    </main>
   </div>
+
+  <!-- 원본 보기 팝업 뷰어(페이지당 1개) -->
+  <div class="sb-lb" id="sbLb" hidden>
+    <div class="sb-lb-bar">
+      <span class="t" id="sbLbTitle"></span>
+      <span class="sb-zoomctl">
+        <button data-z="out" aria-label="축소">−</button><span class="zlvl">100%</span>
+        <button data-z="in" aria-label="확대">+</button><button class="wide" data-z="fit">맞춤</button>
+      </span>
+      <button class="sb-lb-x" data-lbclose aria-label="닫기">✕</button>
+    </div>
+    <div class="sb-lb-zoom" id="sbLbZoom"><div class="sb-stage" id="sbLbStage"><img id="sbLbImg" alt="원본 화면" draggable="false" /></div></div>
+  </div>
+
+  <!-- 글자 크기 + 콜아웃 번호 진하기 (localStorage, 탭 간 동기화) -->
+  <script>
+  (function(){var r=document.documentElement,FZ='sbFz',OP='sbCueOp',S=[1,1.12,1.26,1.42];
+  function cl(i){i=parseInt(i,10)||0;return Math.max(0,Math.min(S.length-1,i));}
+  function gF(){try{return cl(localStorage.getItem(FZ))}catch(e){return 0}}
+  function gO(){try{var v=parseInt(localStorage.getItem(OP),10);return(v>=20&&v<=100)?v:60}catch(e){return 60}}
+  function aF(i){r.style.setProperty('--sb-fz',S[cl(i)]);}
+  function aO(v){r.style.setProperty('--sb-cue-op',(v/100).toFixed(2));}
+  aF(gF());aO(gO());
+  function wire(){var fi=gF();
+    document.querySelectorAll('[data-fz]').forEach(function(b){b.addEventListener('click',function(){
+      var a=b.dataset.fz;fi=a==='inc'?cl(fi+1):a==='dec'?cl(fi-1):0;aF(fi);try{localStorage.setItem(FZ,fi)}catch(e){}});});
+    var s=document.querySelector('[data-op]');
+    if(s){s.value=gO();s.addEventListener('input',function(){aO(s.value);try{localStorage.setItem(OP,s.value)}catch(e){}});}}
+  if(document.readyState!=='loading')wire();else document.addEventListener('DOMContentLoaded',wire);
+  window.addEventListener('storage',function(e){if(e.key===FZ)aF(gF());
+    if(e.key===OP){aO(gO());var s=document.querySelector('[data-op]');if(s)s.value=gO();}});})();
+  </script>
+
+  <!-- 화면 확대/축소: 휠(커서 기준) · ＋－·맞춤 · 드래그 · 더블클릭 -->
+  <script>
+  (function(){function init(box){var stage=box.querySelector('.sb-stage');if(!stage)return;
+    var pane=box.closest('.sb-screenpane')||box.closest('.sb-pane')||box.parentNode,
+        z=1,tx=0,ty=0,MIN=1,MAX=6,drag=false,sx=0,sy=0,btx=0,bty=0,lbl=pane.querySelector('.zlvl');
+    function clamp(){var r=box.getBoundingClientRect(),w=stage.offsetWidth*z,h=stage.offsetHeight*z;
+      tx=Math.max(Math.min(0,r.width-w),Math.min(0,tx));ty=Math.max(Math.min(0,r.height-h),Math.min(0,ty));}
+    function apply(){clamp();stage.style.transform='translate('+tx+'px,'+ty+'px) scale('+z+')';
+      box.classList.toggle('zoomed',z>1);if(lbl)lbl.textContent=Math.round(z*100)+'%';}
+    function zoomAt(cx,cy,nz){nz=Math.max(MIN,Math.min(MAX,nz));var r=box.getBoundingClientRect(),
+      ox=cx-r.left,oy=cy-r.top;tx=ox-(ox-tx)*(nz/z);ty=oy-(oy-ty)*(nz/z);z=nz;apply();}
+    function reset(){z=1;tx=0;ty=0;apply();}
+    box.addEventListener('wheel',function(e){e.preventDefault();zoomAt(e.clientX,e.clientY,z*(e.deltaY<0?1.15:1/1.15));},{passive:false});
+    box.addEventListener('pointerdown',function(e){if(z<=1)return;drag=true;box.classList.add('dragging');
+      sx=e.clientX;sy=e.clientY;btx=tx;bty=ty;try{box.setPointerCapture(e.pointerId)}catch(_){}});
+    box.addEventListener('pointermove',function(e){if(!drag)return;tx=btx+(e.clientX-sx);ty=bty+(e.clientY-sy);apply();});
+    function end(){drag=false;box.classList.remove('dragging');}
+    box.addEventListener('pointerup',end);box.addEventListener('pointercancel',end);
+    box.addEventListener('dblclick',function(e){e.preventDefault();reset();});
+    pane.querySelectorAll('.sb-zoomctl [data-z]').forEach(function(b){b.addEventListener('click',function(){
+      var r=box.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2,a=b.dataset.z;
+      if(a==='in')zoomAt(cx,cy,z*1.3);else if(a==='out')zoomAt(cx,cy,z/1.3);else reset();});});
+    apply();}
+  function boot(){document.querySelectorAll('.sb-screen .sb-zoom').forEach(init);}
+  if(document.readyState!=='loading')boot();else document.addEventListener('DOMContentLoaded',boot);})();
+  </script>
+
+  <!-- 원본 보기: 이미지(data-lb=url) 또는 .sb-stage 복제(data-lb-stage) → 전체화면 뷰어 -->
+  <script>
+  (function(){var lb=document.getElementById('sbLb');if(!lb)return;
+  var zoom=document.getElementById('sbLbZoom'),stage=document.getElementById('sbLbStage')||zoom.querySelector('.sb-stage'),
+      title=document.getElementById('sbLbTitle'),lvl=lb.querySelector('.zlvl');
+  var IMG='<img id="sbLbImg" alt="원본 화면" draggable="false" />';
+  var mode='img',z=1,fit=1,tx=0,ty=0,drag=false,sx=0,sy=0,btx=0,bty=0;
+  function apply(){stage.style.transform='translate('+tx+'px,'+ty+'px) scale('+z+')';if(lvl)lvl.textContent=Math.round(z/fit*100)+'%';}
+  function fitNow(){var r=zoom.getBoundingClientRect(),w,h;
+    if(mode==='img'){var img=document.getElementById('sbLbImg');w=(img&&img.naturalWidth)||1;h=(img&&img.naturalHeight)||1;}
+    else{w=stage.offsetWidth||1;h=stage.offsetHeight||1;}
+    fit=Math.min(r.width/w,r.height/h)||1;z=fit;tx=(r.width-w*z)/2;ty=(r.height-h*z)/2;apply();}
+  function openImg(src,t){mode='img';stage.style.position='';stage.style.background='';stage.style.padding='';
+    stage.innerHTML=IMG;var img=document.getElementById('sbLbImg');title.textContent=t||'';lb.hidden=false;
+    if(img.complete&&img.naturalWidth)fitNow();else img.onload=fitNow;img.src=src;}
+  function openStage(sel,t){mode='stage';var s=document.querySelector(sel||'.sb-screen .sb-stage');
+    stage.style.position='absolute';stage.style.top='0';stage.style.left='0';stage.style.background='#fff';stage.style.padding='18px';
+    stage.innerHTML=s?s.innerHTML:'';title.textContent=t||'원본 보기';lb.hidden=false;requestAnimationFrame(fitNow);}
+  function close(){lb.hidden=true;stage.innerHTML='';}
+  function zoomAt(cx,cy,nz){var mn=fit*0.5,mx=Math.max(1,fit)*8;nz=Math.max(mn,Math.min(mx,nz));
+    var r=zoom.getBoundingClientRect(),ox=cx-r.left,oy=cy-r.top;tx=ox-(ox-tx)*(nz/z);ty=oy-(oy-ty)*(nz/z);z=nz;apply();}
+  document.querySelectorAll('[data-lb]').forEach(function(b){b.addEventListener('click',function(e){e.preventDefault();openImg(b.getAttribute('data-lb'),b.getAttribute('data-title'));});});
+  document.querySelectorAll('[data-lb-stage]').forEach(function(b){b.addEventListener('click',function(e){e.preventDefault();openStage(b.getAttribute('data-lb-stage'),b.getAttribute('data-title'));});});
+  lb.querySelectorAll('[data-lbclose]').forEach(function(b){b.addEventListener('click',close);});
+  lb.addEventListener('click',function(e){if(e.target===lb)close();});
+  document.addEventListener('keydown',function(e){if(!lb.hidden&&e.key==='Escape')close();});
+  zoom.addEventListener('wheel',function(e){e.preventDefault();zoomAt(e.clientX,e.clientY,z*(e.deltaY<0?1.15:1/1.15));},{passive:false});
+  zoom.addEventListener('pointerdown',function(e){drag=true;zoom.classList.add('dragging');sx=e.clientX;sy=e.clientY;btx=tx;bty=ty;try{zoom.setPointerCapture(e.pointerId)}catch(_){}});
+  zoom.addEventListener('pointermove',function(e){if(!drag)return;tx=btx+(e.clientX-sx);ty=bty+(e.clientY-sy);apply();});
+  function end(){drag=false;zoom.classList.remove('dragging');}
+  zoom.addEventListener('pointerup',end);zoom.addEventListener('pointercancel',end);
+  lb.querySelectorAll('[data-z]').forEach(function(b){b.addEventListener('click',function(){
+    var r=zoom.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2,a=b.dataset.z;
+    if(a==='in')zoomAt(cx,cy,z*1.3);else if(a==='out')zoomAt(cx,cy,z/1.3);else fitNow();});});
+  window.addEventListener('resize',function(){if(!lb.hidden)fitNow();});})();
+  </script>
+
+  <!-- 목차에서 현재 화면 스크롤 -->
+  <script>(function(){var c=document.querySelector(".sb-toc a.t.current"),t=document.querySelector(".sb-toc");if(c&&t)t.scrollTop=c.offsetTop-t.clientHeight/2+20;})();</script>
 </body>
 </html>
