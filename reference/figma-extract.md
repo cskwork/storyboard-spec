@@ -22,8 +22,8 @@ Output: `design-specs/<page>-NN.html` per frame, `index.html` board, `assets/` (
 | Region | Source | Rendered as |
 |---|---|---|
 | LEFT screen | frame image, cropped to exclude right panel + bottom policy | `<img>` in `.sb-stage` |
-| callout ①②③ | Figma marker nodes (ELLIPSE + digit TEXT) | crisp HTML `.sb-cue.pin` overlay, positioned by % |
-| RIGHT description | `DescriptionPanel` TEXT nodes | real HTML text (`.sb-desc`, numbered `.sb-num` badges) |
+| callout ①②③ | Figma marker nodes (ELLIPSE + digit TEXT), or styled marker TEXT groups | crisp HTML `.sb-cue.pin` overlay, positioned by % |
+| RIGHT description | `DescriptionPanel` TEXT nodes, or a right-side TEXT column | real HTML text (`.sb-desc`, numbered `.sb-num` badges) |
 | BOTTOM policy/rules | `PolicyBox` TEXT nodes | real HTML text (`.sb-policy`) |
 
 **Never bake annotation text into the image.** The whole point is selectable/searchable text and
@@ -35,20 +35,39 @@ sharp callouts at any zoom.
 2. **Per-frame extract** (`GET /v1/files/{KEY}/nodes?ids=...&depth=14`):
    - **Description panel** = a child `FRAME` named `*Description*`, else the right-side tall narrow
      column (relx > 45 % of width, 480–900 px wide). Its left edge = the screen's **right crop X**.
+     If there is no panel frame, fall back to a right-side TEXT column: first use a `Description`
+     label's x position, else use the left edge of repeated right-side text blocks. Filter out
+     metadata (`Date`, `Ver`, `Writer`, `Description`, version/date strings) and standalone marker
+     numbers before rendering description HTML.
    - **Policy box** = a child named `*policy*`, else a wide frame low in the canvas (relY > 50 %,
      width > 40 %), left of the description panel. Its top = the screen's **bottom crop Y**.
-   - **Callout markers** = small ELLIPSE (20–36 px) with a 1–2 digit TEXT centered on it (≤ 8 px).
-     Keep only those inside the screen region (left of panel, above policy) — this drops right-panel
-     section numbers and table-data digits.
+   - **Callout markers** = small ELLIPSE (20–36 px) with a marker TEXT centered on it (≤ 8 px).
+     Marker text may be `1`, `10`, `4-4`, or `*`. Keep only those inside the screen region
+     (left of panel, above policy) — this drops right-panel section numbers and table-data digits.
+   - **Text-only marker fallback** = accept marker-looking TEXT only when its layer path looks like a
+     marker group (`description_`, `point`, `marker`, `callout`, `pin`, `annotation`) **and** the text
+     style looks like a marker (white bold text or red marker fill). Do not promote arbitrary numeric
+     UI data such as counts, table values, page numbers, scores, or dates.
    - **Text** = every `TEXT` node's `characters`, sorted by (y, x) to recover reading order.
 3. **Export** — `GET /v1/images/{KEY}?ids=<one id>&format=png&scale=3`.
    - **Render-timeout trap:** batching many large frames returns `400 "Render timeout, try requesting
      fewer or smaller images"`. Export **one frame id per request** (a few worker threads is fine).
      Fall back to a smaller scale if `maxdim * scale` is too big.
    - Crop the screen with PIL to `(0, 0, cropX*scale, cropY*scale)`.
-4. **Render** — text → HTML: a standalone digit or a circled digit (①…㉚) starts a numbered section
-   (`.sb-num` badge = the on-screen callout number); `•`/`-` lines become `<li>`. Callout overlay
-   left/top % = `marker.center ÷ crop size`.
+4. **Render** — text → HTML: a standalone marker number (`1`, `10`, `4-4`, `*`) or a circled digit
+   (①…㉚) starts a numbered section (`.sb-num` badge = the on-screen callout number); `•`/`-` lines
+   become `<li>`. Callout overlay left/top % = `marker.center ÷ crop size`. Multi-character marker
+   labels get `--sb-cue-size` / `--sb-cue-font` so they stay centered inside one red circle.
+
+## Marker extraction checklist
+
+When adapting the extractor for a new Figma source, verify these in the generated HTML and a screenshot:
+
+- Right-side description text is real HTML, not part of the exported image.
+- A screen with no real on-screen marker does not invent a fallback marker.
+- Numeric UI data in lists, tables, badges, dates, or counters does not become `data-cue="..."`.
+- Compound marker labels such as `4-4` remain unbroken inside the red marker and the right-side `.sb-num`.
+- The original full frame is still reachable through the 원본 보기/lightbox link.
 
 ## Shared controls (top-right, common to all pages)
 

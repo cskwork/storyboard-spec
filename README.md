@@ -62,11 +62,12 @@ python3 scripts/figma_storyboard.py --out ./design-specs --pages 9:2,60:2 --titl
 # --pages 생략 시 전체 캔버스 페이지. URL의 node-id 9-2 == API id 9:2
 ```
 
-- **왼쪽 = 화면 이미지** — 프레임을 export 해 우측 설명 패널·하단 정책을 잘라낸 화면만, 그 위에 **선명한 HTML 콜아웃**(Figma 마커 좌표로 핀 — 이미지에 박지 않아 어느 배율에서도 또렷, 진하기 조절 가능).
-- **오른쪽 = 설명, 아래 = 정책·규칙** — Figma `TEXT` 노드를 **실제 HTML 텍스트**로 옮깁니다(선택·복사·검색 가능, 캡처 이미지 아님). 번호는 화면 콜아웃과 1:1 매칭되는 배지.
+- **왼쪽 = 화면 이미지** — 프레임을 export 해 우측 설명 영역·하단 정책을 잘라낸 화면만, 그 위에 **선명한 HTML 콜아웃**(Figma 마커 좌표로 핀 — 이미지에 박지 않아 어느 배율에서도 또렷, 진하기 조절 가능).
+- **오른쪽 = 설명, 아래 = 정책·규칙** — `DescriptionPanel`이 있으면 그 프레임을 쓰고, 없으면 우측 `TEXT` column을 감지해 **실제 HTML 텍스트**로 옮깁니다(선택·복사·검색 가능, 캡처 이미지 아님). 번호는 화면 콜아웃과 1:1 매칭되는 배지.
+- **콜아웃 추출** — ELLIPSE+숫자 marker를 우선 사용하고, Figma가 marker를 TEXT group으로 만든 경우에는 `description_`/`point`/`marker` 같은 marker group + 흰색 bold 또는 빨간 marker fill인 텍스트만 허용합니다. 목록 개수·표 값 같은 일반 숫자 데이터는 콜아웃으로 승격하지 않습니다.
 - **읽기 좋은 뷰어** — 좌측 목차로 화면 간 바로 이동, 화면 휠·버튼·드래그 줌, 원본 보기 인페이지 팝업(역시 줌), 우측 상단 글자 크기·콜아웃 진하기 컨트롤(한 페이지에서 바꾸면 `localStorage`로 전체 공통 적용).
 
-함정(렌더 타임아웃, 패널/정책 분리, Grid `min-width:0`)과 단계는 [`reference/figma-extract.md`](reference/figma-extract.md).
+함정(렌더 타임아웃, 패널/정책 분리, 숫자 데이터와 marker 구분, Grid `min-width:0`)과 단계는 [`reference/figma-extract.md`](reference/figma-extract.md).
 
 ## 구조 / Layout
 
@@ -96,8 +97,9 @@ storyboard-spec/
 
 1. **콜아웃이 대상 앱 규칙에 덮어써짐** — 대상 CSS의 `.field span{display:block}`, `.meter span{background}` 같은 규칙이 콜아웃 `<span>`을 사각형/왼쪽정렬로 깨뜨립니다. → `storyboard.css`의 `.sb-cue`가 `!important`로 방어 (지우지 말 것).
 2. **`<table>` 직속 `<span>` 금지** — 브라우저가 테이블 밖으로 밀어냅니다(foster parenting). → `<table>`을 `<div class="sb-mark">`로 감싸고 콜아웃을 그 div에.
-3. **CSS 링크 순서** — 대상 앱 CSS 먼저, `storyboard.css` 나중.
-4. **스크린샷으로 검증** 후 완료 선언.
+3. **Figma 숫자 오인식** — 화면 안의 개수·점수·표 값도 숫자라서 단순 정규식으로 marker를 찾으면 잘못된 빨간 원이 생깁니다. → marker group/path와 fill/font 조건을 같이 봅니다.
+4. **CSS 링크 순서** — 대상 앱 CSS 먼저, `storyboard.css` 나중.
+5. **스크린샷으로 검증** 후 완료 선언.
 
 자세한 내용은 [`reference/playbook.md`](reference/playbook.md).
 
