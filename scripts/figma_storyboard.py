@@ -34,6 +34,10 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 SKILL = os.path.dirname(HERE)
 CIRCLED = '①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳㉑㉒㉓㉔㉕㉖㉗㉘㉙㉚'
 CMAP = {c: str(i + 1) for i, c in enumerate(CIRCLED)}
+MARK_RE = re.compile(r'^\d{1,2}(?:-\d{1,2})?$|^\*$')
+DATE_RE = re.compile(r'^\d{4}[./-]\d{2}[./-]\d{2}\.?$')
+META_TEXTS = {'Date', 'Ver', 'Version', 'Writer', 'Author', 'Description', 'Policy', 'No', '1.0', '-'}
+MARKER_PATH_RE = re.compile(r'(description_|/point|/marker|/callout|/pin|/annotation)', re.I)
 
 
 def load_env():
@@ -53,10 +57,36 @@ def api(path, token):
 
 
 # ---------- Figma structure / text / markers ----------
+def clean_text(value):
+    return (value or '').replace('\u2028', '\n').replace('\u00a0', ' ').strip()
+
+
+def node_fill_rgb(node):
+    fills = node.get('fills') or []
+    if not fills:
+        return None
+    color = fills[0].get('color') or {}
+    return tuple(round(color.get(k, 0), 3) for k in ('r', 'g', 'b'))
+
+
+def cue_visual_style(value):
+    length = len((value or '').strip())
+    if length <= 1:
+        return ''
+    size = 26 if length == 2 else min(38, 24 + length * 3)
+    font = 11 if length == 2 else 10
+    return '--sb-cue-size:%dpx;--sb-cue-font:%dpx' % (size, font)
+
+
+def cue_style_attr(value):
+    style = cue_visual_style(value)
+    return ' style="%s"' % style if style else ''
+
+
 def collect_text(node, out):
     if node.get('type') == 'TEXT' and (node.get('characters', '') or '').strip():
         b = node.get('absoluteBoundingBox') or {}
-        out.append([round(b.get('y', 0)), round(b.get('x', 0)), node['characters']])
+        out.append([round(b.get('y', 0)), round(b.get('x', 0)), clean_text(node['characters'])])
     for c in node.get('children', []):
         collect_text(c, out)
 
@@ -66,6 +96,49 @@ def texts_sorted(node):
     collect_text(node, o)
     o.sort()
     return [t[2] for t in o]
+
+
+def text_entries(node, fx, fy):
+    out = []
+
+    def walk(n, path=''):
+        if n.get('type') == 'TEXT' and (n.get('characters', '') or '').strip():
+            b = n.get('absoluteBoundingBox') or {}
+            st = n.get('style') or {}
+            out.append({
+                'x': b.get('x', 0) - fx,
+                'y': b.get('y', 0) - fy,
+                'w': b.get('width', 0),
+                'h': b.get('height', 0),
+                'name': n.get('name', '') or '',
+                'text': clean_text(n.get('characters', '')),
+                'path': path,
+                'fill': node_fill_rgb(n),
+                'font_weight': st.get('fontWeight', 0),
+            })
+        for c in n.get('children', []):
+            walk(c, '%s/%s' % (path, n.get('name', '') or ''))
+
+    walk(node)
+    out.sort(key=lambda t: (t['y'], t['x']))
+    return out
+
+
+def is_meta_text(t):
+    text = (t.get('text') or '').strip()
+    return text in META_TEXTS or DATE_RE.match(text) is not None
+
+
+def text_column_lines(frame, fx, fy, doc_x):
+    lines = []
+    for t in text_entries(frame, fx, fy):
+        text = (t.get('text') or '').strip()
+        if t['x'] < doc_x + 40 or t['y'] < 140 or not text:
+            continue
+        if is_meta_text(t) or MARK_RE.fullmatch(text):
+            continue
+        lines.append(text)
+    return lines
 
 
 def find_named(node, kw):
@@ -78,11 +151,11 @@ def find_named(node, kw):
     return None
 
 
-def find_desc(frame, fx, fw):
+def find_desc(frame, fx, fy, fw):
     p = find_named(frame, 'description')
     if p:
         b = p.get('absoluteBoundingBox') or {}
-        return p, b.get('x', 0) - fx
+        return p, b.get('x', 0) - fx, 'node'
     cands = []
     for c in frame.get('children', []):
         if c.get('type') == 'FRAME':
@@ -91,10 +164,18 @@ def find_desc(frame, fx, fw):
     right = [t for t in cands if t[1] > fw * 0.45 and 480 <= t[2] <= 900]
     if right:
         right.sort(key=lambda t: (-t[3], -t[1]))
-        return right[0][0], right[0][1]
+        return right[0][0], right[0][1], 'node'
+    labels = [t['x'] for t in text_entries(frame, fx, fy)
+              if t['text'] == 'Description' or t['name'] == 'Description']
+    if labels:
+        return None, max(0, min(labels) - 28), 'text-column'
+    right_texts = [t['x'] for t in text_entries(frame, fx, fy)
+                   if t['x'] > fw * 0.62 and t['y'] > 140 and not is_meta_text(t)]
+    if len(right_texts) >= 2:
+        return None, max(0, min(right_texts) - 28), 'text-column'
     if any(k in (frame.get('name', '') or '').lower() for k in ('description', 'policy')):
-        return frame, None      # standalone text panel = whole frame
-    return None, None
+        return frame, None, 'node'      # standalone text panel = whole frame
+    return None, None, None
 
 
 def find_policy(frame, fx, fy, fw, fh, desc_relx):
@@ -118,6 +199,21 @@ def find_policy(frame, fx, fy, fw, fh, desc_relx):
     return best if best else (None, None)
 
 
+def is_screen_marker_text(t):
+    path = t.get('path') or ''
+    fill = t.get('fill')
+    weight = t.get('font_weight') or 0
+    if not MARKER_PATH_RE.search(path):
+        return False
+    is_white_marker = fill is not None and min(fill) > 0.9 and weight >= 700
+    is_red_marker = fill is not None and fill[0] > 0.7 and fill[1] < 0.25 and fill[2] < 0.35
+    return is_white_marker or is_red_marker
+
+
+def in_screen_region(cx, cy, lim_x, lim_y):
+    return not ((lim_x and cx >= lim_x - 4) or (lim_y and cy >= lim_y - 4))
+
+
 def markers(frame, fx, fy, lim_x, lim_y):
     ell, dig = [], []
 
@@ -128,7 +224,7 @@ def markers(frame, fx, fy, lim_x, lim_y):
                 ell.append((b['x'] - fx + b['width'] / 2, b['y'] - fy + b['height'] / 2))
         if n.get('type') == 'TEXT':
             t = (n.get('characters', '') or '').strip()
-            if re.fullmatch(r'\d{1,2}', t):
+            if MARK_RE.fullmatch(t):
                 b = n.get('absoluteBoundingBox') or {}
                 dig.append((b['x'] - fx + b['width'] / 2, b['y'] - fy + b['height'] / 2, t))
         for c in n.get('children', []):
@@ -140,13 +236,26 @@ def markers(frame, fx, fy, lim_x, lim_y):
         if near[0] > 8:
             continue
         cx, cy = near[1], near[2]
-        if (lim_x and cx >= lim_x - 4) or (lim_y and cy >= lim_y - 4):
+        if not in_screen_region(cx, cy, lim_x, lim_y):
             continue
         k = (t, round(cx / 6), round(cy / 6))
         if k in seen:
             continue
         seen.add(k)
         out.append({'n': t, 'cx': round(cx), 'cy': round(cy)})
+    for t in text_entries(frame, fx, fy):
+        value = (t['text'] or '').strip()
+        if not MARK_RE.fullmatch(value) or not is_screen_marker_text(t):
+            continue
+        cx, cy = t['x'] + t['w'] / 2, t['y'] + t['h'] / 2
+        if not in_screen_region(cx, cy, lim_x, lim_y):
+            continue
+        k = (value, round(cx / 6), round(cy / 6))
+        if k in seen:
+            continue
+        seen.add(k)
+        out.append({'n': value, 'cx': round(cx), 'cy': round(cy)})
+    out.sort(key=lambda m: (m['cy'], m['cx']))
     return out
 
 
@@ -154,7 +263,7 @@ def markers(frame, fx, fy, lim_x, lim_y):
 def classify(s):
     s = s.rstrip(); t = s.strip()
     if not t: return ('blank', '')
-    if re.fullmatch(r'\d{1,2}', t): return ('num', t)
+    if MARK_RE.fullmatch(t): return ('num', t)
     if t[0] in CIRCLED: return ('head', t)
     if t[0] in '•◦▪·*‣' or re.match(r'^-\s', t): return ('bullet', t.lstrip('•◦▪·*‣- ').strip())
     return ('text', s)
@@ -187,7 +296,8 @@ def render_desc(lines):
         out += ['<p%s>%s</p>' % (' class="b"' if k == 'bullet' else '', html.escape(v)) for k, v in intro]
         out.append('</div>')
     for s in sections:
-        badge = '<span class="sb-num">%s</span>' % html.escape(s['num']) if s['num'] else ''
+        badge = '<span class="sb-num"%s>%s</span>' % (
+            cue_style_attr(s['num']), html.escape(s['num'])) if s['num'] else ''
         out.append('<section class="sb-desc-item"><h4>%s<span>%s</span></h4>' % (badge, html.escape(s['title'])))
         bl = [v for k, v in s['items'] if k == 'bullet']
         if bl:
@@ -375,10 +485,11 @@ def main():
         fr = nodes[m['frame_id']]['document']
         fb = fr.get('absoluteBoundingBox') or {}
         fx, fy, fw, fh = fb.get('x', 0), fb.get('y', 0), fb.get('width', 0), fb.get('height', 0)
-        dn, drelx = find_desc(fr, fx, fw)
+        dn, drelx, desc_mode = find_desc(fr, fx, fy, fw)
         pn, prelY = find_policy(fr, fx, fy, fw, fh, drelx)
+        desc_lines = text_column_lines(fr, fx, fy, drelx) if desc_mode == 'text-column' else (texts_sorted(dn) if dn else [])
         m.update(fw=fw, fh=fh, crop_x=drelx or fw, crop_y=prelY or fh,
-                 desc=texts_sorted(dn) if dn else [], desc_self=bool(dn) and dn.get('id') == m['frame_id'],
+                 desc=desc_lines, desc_self=bool(dn) and dn.get('id') == m['frame_id'],
                  policy=texts_sorted(pn) if pn else [], markers=markers(fr, fx, fy, drelx or fw, prelY or fh))
 
     # export (one id per request) + crop + thumb
@@ -428,7 +539,9 @@ def render(out, man, key, file_name, title):
         for mk in m['markers']:
             l, t = mk['cx'] / m['crop_x'] * 100, mk['cy'] / m['crop_y'] * 100
             if 0 <= l <= 100 and 0 <= t <= 100:
-                sp.append('<span class="sb-cue pin" style="left:%.2f%%;top:%.2f%%">%s</span>' % (l, t, html.escape(mk['n'])))
+                style = 'left:%.2f%%;top:%.2f%%;%s' % (l, t, cue_visual_style(mk['n']))
+                sp.append('<span class="sb-cue pin" data-cue="%s" style="%s">%s</span>' % (
+                    html.escape(mk['n']), html.escape(style), html.escape(mk['n'])))
         return ''.join(sp)
 
     def body(m):

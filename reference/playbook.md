@@ -135,6 +135,9 @@ scripts\shoot.ps1 <dir> sb-01-xxx.html
   - **node-id 표기**: Figma URL의 `node-id=73-2`(하이픈)를 `73:2`(콜론)로 바꿔 쓴다.
   - export 이미지를 `.sb-screen` 안 `<img>`로 깔고, inspect의 `absolutePositioning` 좌표대로 `.sb-cue`를 절대배치(부모 `position:relative`). = 위 모바일/네이티브 방식과 동일.
   - **REST API 변형** (figma-cli 대신 토큰만 있을 때): `X-Figma-Token` 헤더로 `GET /v1/files/{key}/nodes?ids=73:2`(스펙) + `GET /v1/images/{key}?ids=73:2&format=png`(이미지). 토큰은 환경변수/`.env`로만 두고 **절대 커밋하지 않는다**(`.gitignore`에 `.env`).
+  - **Description 구조 변형**: `DescriptionPanel` 프레임이 없고 우측에 TEXT node column만 있는 storyboard도 있다. 이때는 `Description` label 또는 반복되는 우측 TEXT block의 x 좌표를 crop 기준으로 삼고, 설명은 그 column의 TEXT만 real HTML로 옮긴다.
+  - **Marker 구조 변형**: 기본은 ELLIPSE + 숫자 TEXT지만, 일부 파일은 marker를 `description_`/`point`/`marker` 같은 group 안의 styled TEXT로만 만든다. 이 fallback은 group/path와 색·굵기 조건을 같이 확인한다. 숫자 패턴만으로 찾으면 목록 개수·표 값·날짜 같은 UI 데이터가 잘못된 콜아웃이 된다.
+  - **긴 marker label**: `4-4`처럼 2자 이상인 번호는 `--sb-cue-size`/`--sb-cue-font`로 키우고, `white-space: nowrap`으로 원 안에 유지한다.
 - **그 외 목업(이미지만)**: 모드 B 와이어프레임 또는 export 이미지 + 절대좌표 cue.
 - **테마**: `storyboard.css` 의 `:root --sb-*` 변수만 바꿔 대상 브랜드 색에 맞춘다.
 - 라벨을 영어로 바꾸려면 템플릿의 한국어 문구(화면/설명/구역/No 등)만 치환.
