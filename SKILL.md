@@ -1,6 +1,6 @@
 ---
 name: storyboard-spec
-description: Side-by-side storyboard 화면설계서. Left = screen (wireframe to design up front, OR replica of a built/Figma UI) with numbered callouts; right = per-element table (action/data/exception); plus thumbnail board. Domain-agnostic.
+description: Create storyboard screen specifications for planned or existing UI with numbered screen images beside selectable action, data, state, and exception tables, plus a thumbnail board. Use for 화면설계서 or screen-storyboard requests, not general prose specifications.
 when_to_use: User wants a 화면설계서 / 스토리보드 / screen design doc / spec / storyboard — to plan screens up front (no UI yet) or to document existing/built/Figma screens for planners and API/frontend devs together.
 allowed-tools: Read Write Edit Bash(*) Agent AskUserQuestion
 ---
@@ -33,7 +33,7 @@ Both modes share the same right-pane table, board, and verification. The format 
 ## Workflow
 
 1. **Scope + mode** — list the screens/states (flow order). Decide the mode: **B (기획)** if no UI exists yet → you'll wireframe; **A (문서화)** if a built/Figma screen exists → find the target UI + its real stylesheet (or export image). Output usually goes in `<app>/design-specs/`. If scope/format/mode is ambiguous, confirm with AskUserQuestion first.
-2. **Define elements** — per screen, list every interactive element: name/DOM-id (or selector), action→event, data contract (fields/payload/endpoint), state, exception. **Mode B**: derive these from the planning intent (what each control should do). **Mode A**: extract them from the code/design — for big codebases, fan out fact-extraction to subagents (return distilled facts, not file dumps).
+2. **Define elements** — per screen, list every interactive element: name/DOM-id (or selector), action→event, data contract (fields/payload/endpoint), state, exception. **Mode B**: derive these from the planning intent (what each control should do). **Mode A**: extract them from the code/design — delegate disjoint fact-extraction only when it reduces work; return cited facts, not file dumps.
 3. **Copy CSS** — copy `templates/storyboard.css` into the output dir (theme `:root` to match the brand if wanted).
 4. **Build pages** — from `storyboard-page.html`: RIGHT = `sb-notes` table as **real HTML text**, one row per cue. LEFT = the screen as the picture + `sb-mark`/`sb-cue` callouts — **mode A**: a Figma/screenshot `<img>` (canonical), or a live real-markup+CSS render; **mode B**: a wireframe from `sb-` boxes/fields/buttons.
 5. **Build board** — from `board-index.html`, one `.sb-card` per screen.
